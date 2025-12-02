@@ -1,16 +1,16 @@
 Roles and Permissions
-###################
+######################
 
-Mautic lets you define custom permissions for each Role. These permissions determine what Users can view or do within different parts of the system.
+Mautic provides a permission system that defines what each Role can access or modify. Permissions apply across different areas of the application and control which actions are available to Users.
 
 How Permissions Work
---------------------
+********************
 
-Mautic assigns permissions using bit values. These bits double as they increase:
+Mautic represents permissions using bit values. Each bit doubles in value as it increases, for example:
 
-``1, 2, 4, 8, 16, 32, 64, 128...``
+``1, 2, 4, 8, 16, 32, 64, 128``
 
-Bits should always follow this sequence. Avoid values like ``3`` or ``5`` because permission checks will fail.
+Always follow this sequence. Values such as ``3`` or ``5`` cause permission checks to fail as the permission will not correctly calculated.
 
 Example permission set:
 
@@ -24,25 +24,21 @@ Example permission set:
 | full         | 16  |
 +--------------+-----+
 
-A permission notation looks like this:
+A permission notion follows this format:
 
 ``plugin:helloWorld:worlds:view``
 
-This checks the ``view`` permission for the ``worlds`` level of the plugin.
+This checks the ``view`` permission for the ``worlds`` level of a Plugin.
 
-How Bit Storage Works
-~~~~~~~~~~~~~~~~~~~~~
+Bit Storage
+===========
 
-Mautic stores permissions by adding the bits of all permissions assigned to a Role.
+Mautic stores permissions by adding the bits of all permissions assigned to a Role. For example:
 
-Examples:
+* ``view`` + ``edit`` → ``1 + 2 = 3``
+* ``view`` + ``create`` → ``1 + 4 = 5``
 
-* ``view`` + ``edit`` = ``1 + 2 = 3``
-* ``view`` + ``create`` = ``1 + 4 = 5``
-
-When checking a permission, Mautic verifies whether the bit exists within the stored sum.
-
-The ``full`` permission should always use the highest bit. It automatically grants all lower permissions.
+Access checks confirm whether the required bit is present within the stored sum. The ``full`` permission always uses the highest bit and automatically grants all lower permissions.
 
 Using Permissions
 -----------------
@@ -69,9 +65,7 @@ Example:
 Creating Custom Permissions
 ---------------------------
 
-Plugins can define their own Permission classes.
-
-Each Permission class must:
+Plugins can define custom Permission classes. Each Permission class must:
 
 * Extend ``Mautic\CoreBundle\Security\Permissions\AbstractPermissions``
 * Implement ``__construct()``
@@ -81,10 +75,8 @@ Each Permission class must:
 Constructor
 ~~~~~~~~~~~
 
-Inside ``__construct()``:
-
-1. Call ``parent::__construct($params)`` or assign ``$this->params = $params``.
-2. Define ``$this->permissions`` as an array of permission levels and bits.
+The constructor must call ``parent::__construct($params)`` or assign ``$this->params = $params``.
+It must also define ``$this->permissions`` as an array of permission levels and their bit values.
 
 Example level definition:
 
@@ -98,7 +90,7 @@ Access check example:
 Helper Methods for Permission Sets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Mautic includes helper methods:
+Mautic provides helper methods for building permission structures:
 
 * ``addStandardPermissions()`` adds view, edit, create, delete, publish, full
 * ``addExtendedPermissions()`` adds creator-based permissions
@@ -107,9 +99,9 @@ Mautic includes helper methods:
 buildForm()
 ~~~~~~~~~~~
 
-``buildForm()`` adds permission fields to the Role form.
+The ``buildForm()`` method adds permission fields to the Role form.
 
-Available helpers:
+Available helpers include:
 
 * ``addStandardFormFields()``
 * ``addExtendedFormFields()``
@@ -118,18 +110,18 @@ Available helpers:
 getName()
 ~~~~~~~~~
 
-This must return the bundle name in camelCase.
+This method returns the bundle name in camelCase.
 
 Example:
 
 * Bundle: ``HelloWorldBundle``
-* Method return value: ``helloWorld``
+* ``getName()`` returns ``helloWorld``
 * File name: ``HelloWorldPermissions.php``
 
 Permission Aliases
 ------------------
 
-Use ``getSynonym()`` to map a permission name to another one.
+Use ``getSynonym()`` to map one permission name to another.
 
 Example:
 
@@ -138,14 +130,11 @@ Example:
 Analyzing Permissions Before Saving
 -----------------------------------
 
-Plugins can adjust permissions before saving.
-
-Use:
+Plugins can modify permissions before saving by implementing:
 
 ``analyzePermissions()``
 
-If a second pass is needed, return ``true``.  
-The next call will include ``$isSecondRound = true``.
+If the method returns ``true``, Mautic runs a second pass and provides ``$isSecondRound = true``.
 
 Advanced Permission Checks
 --------------------------
